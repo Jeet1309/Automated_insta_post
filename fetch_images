@@ -1,0 +1,40 @@
+import os
+from duckduckgo_search import DDGS
+import requests
+import time
+
+
+def save_img(titles):
+    os.makedirs("news_images", exist_ok=True)
+    results = []
+
+    with DDGS() as ddgs:
+        for idx, title in enumerate(titles):
+            print(f"🔍 Searching image for: {title}")
+            result = list(ddgs.images(
+                keywords=title,
+                safesearch='off',
+                max_results=1
+            ))
+            time.sleep(1.5)
+            if result:
+                results.append(result[0]['image'])
+            else:
+                results.append(None)
+                print(f"❌ No image found for: {title}")
+
+    for idx, img_url in enumerate(results):
+        if img_url:
+            try:
+                img_data = requests.get(img_url, timeout=10).content
+                with open(f"news_images/news_{idx+1}.jpg", "wb") as img_file:
+                    img_file.write(img_data)
+                print(f"✅ Saved: news_images/news_{idx+1}.jpg")
+            except Exception as e:
+                print(f"❌ Failed to download image {idx+1} - {e}")
+        else:
+            print(f"⚠️ Skipping image {idx+1}, no URL.")
+
+if __name__ == "__main__":
+    titles = ['the Financial Times', 'Nasdaq', 'Trump', 'Fed', 'Tesla', 'Nasdaq Composite', 'Powell', 'Jerome Powell', 'Senate', 'JD Vance', 'UNH', 'Republicans', 'United Healthcare', "Elon Musk's", 'Dow jumps', 'the Federal Reserve', 'House']
+    save_img(titles)
